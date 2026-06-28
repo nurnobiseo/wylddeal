@@ -1,6 +1,34 @@
 // app.js - Wyld Deal Application Logic
 
-// Initial Default Forum Comments
+// --- FIREBASE CONFIGURATION (Insert your keys here) ---
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "YOUR_AUTH_DOMAIN_HERE",
+  projectId: "YOUR_PROJECT_ID_HERE",
+  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
+  appId: "YOUR_APP_ID_HERE"
+};
+
+let isFirebaseEnabled = false;
+let db, auth;
+
+// Verify if user replaced configuration values
+if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE") {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    isFirebaseEnabled = true;
+    console.log("Firebase initialized successfully.");
+  } catch (error) {
+    console.error("Firebase initialization failed:", error);
+  }
+} else {
+  console.log("Using Local/Mock Storage fallback. Set up Firebase API keys to connect a database.");
+}
+
+// Initial Default Forum Comments (Fallback & Seed)
 const DEFAULT_COMMENTS = [
   {
     id: 1,
@@ -46,7 +74,8 @@ let state = {
   comments: [],
   stockPercent: 78,
   ordersCount: 412,
-  usersOnline: 1482
+  usersOnline: 1482,
+  currentUser: null
 };
 
 // On Page Load
@@ -55,6 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initComments();
   initLiveStats();
   initStockSimulation();
+  initUserSession();
+  renderDiscussPreview();
 });
 
 // Tab Switcher Logic
@@ -251,6 +282,48 @@ function processPayment() {
 
 // Forums & Comments Section
 function initComments() {
+  if (isFirebaseEnabled) {
+    // Listen to real-time comments updates in Cloud Firestore
+    db.collection("comments").orderBy("timestamp", "desc").limit(30)
+      .onSnapshot(snapshot => {
+        const firebaseComments = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          firebaseComments.push({
+            id: doc.id,
+            author: data.author,
+            avatar: data.author.charAt(0).toUpperCase(),
+            text: data.text,
+            time: data.timestamp ? formatTimeAgo(data.timestamp.toDate()) : "Just now",
+            likes: data.likes || 0,
+            liked: false
+          });
+        });
+        
+        // Seed Firestore if empty to keep forum populated
+        if (firebaseComments.length === 0) {
+          DEFAULT_COMMENTS.forEach((c, idx) => {
+            db.collection("comments").add({
+              author: c.author,
+              text: c.text,
+              likes: c.likes,
+              timestamp: new Date(Date.now() - (idx * 1000 * 3600 * 3))
+            });
+          });
+        } else {
+          state.comments = firebaseComments;
+          renderComments();
+        }
+      }, error => {
+        console.error("Firestore loading failed. Falling back to local storage:", error);
+        loadLocalComments();
+      });
+  } else {
+    loadLocalComments();
+  }
+}
+
+function loadLocalComments() {
   const stored = localStorage.getItem('wyld_comments');
   if (stored) {
     state.comments = JSON.parse(stored);
@@ -271,6 +344,9 @@ function renderComments() {
     const card = document.createElement('div');
     card.className = 'comment-card';
     
+    // Check if ID is number or Firestore string to format function call correctly
+    const passedId = typeof comment.id === 'string' ? `'${comment.id}'` : comment.id;
+    
     card.innerHTML = `
       <div class="comment-meta">
         <div class="comment-author-badge">
@@ -281,16 +357,19 @@ function renderComments() {
       </div>
       <div class="comment-body">${escapeHTML(comment.text)}</div>
       <div class="comment-actions">
-        <button class="comment-action-btn ${comment.liked ? 'liked' : ''}" onclick="toggleLike(${comment.id})">
+        <button class="comment-action-btn ${comment.liked ? 'liked' : ''}" onclick="toggleLike(${passedId})">
           🔥 <span id="likes-count-${comment.id}">${comment.likes}</span> Likes
         </button>
-        <button class="comment-action-btn" onclick="flagComment(${comment.id})">
+        <button class="comment-action-btn" onclick="flagComment(${passedId})">
           ⚠️ Report
         </button>
       </div>
     `;
     container.appendChild(card);
   });
+
+  // Also update home page deal discussion preview
+  renderDiscussPreview();
 }
 
 function togglePostForm() {
@@ -304,7 +383,7 @@ function submitComment() {
   const usernameInput = document.getElementById('comment-username');
   const textInput = document.getElementById('comment-text');
 
-  const author = usernameInput.value.trim() || "AnonymousWrench";
+  const author = usernameInput.value.trim() || (state.currentUser ? state.currentUser.username : "AnonymousWrench");
   const text = textInput.value.trim();
 
   if (!text) {
@@ -312,42 +391,88 @@ function submitComment() {
     return;
   }
 
-  const newComment = {
-    id: Date.now(),
-    author: author,
-    avatar: author.charAt(0).toUpperCase(),
-    text: text,
-    time: "Just now",
-    likes: 0,
-    liked: false
-  };
+  if (isFirebaseEnabled) {
+    db.collection("comments").add({
+      author: author,
+      text: text,
+      likes: 0,
+      timestamp: new Date()
+    })
+    .then(() => {
+      textInput.value = '';
+      togglePostForm();
+      showToast("Your comment has been posted to the forum!");
+    })
+    .catch(error => {
+      console.error("Firestore post error:", error);
+      showToast("Failed to post comment.");
+    });
+  } else {
+    const newComment = {
+      id: Date.now(),
+      author: author,
+      avatar: author.charAt(0).toUpperCase(),
+      text: text,
+      time: "Just now",
+      likes: 0,
+      liked: false
+    };
 
-  state.comments.unshift(newComment); // Add to top
-  localStorage.setItem('wyld_comments', JSON.stringify(state.comments));
-  
-  // Reset fields
-  textInput.value = '';
-  togglePostForm();
-  
-  renderComments();
-  showToast("Your comment has been posted to the forum!");
+    state.comments.unshift(newComment); // Add to top
+    localStorage.setItem('wyld_comments', JSON.stringify(state.comments));
+    
+    // Reset fields
+    textInput.value = '';
+    togglePostForm();
+    
+    renderComments();
+    showToast("Your comment has been posted to the forum!");
+  }
 }
 
 function toggleLike(commentId) {
-  state.comments = state.comments.map(c => {
-    if (c.id === commentId) {
-      if (c.liked) {
-        c.likes--;
-        c.liked = false;
-      } else {
-        c.likes++;
-        c.liked = true;
-      }
+  if (isFirebaseEnabled) {
+    const commentIndex = state.comments.findIndex(c => c.id === commentId);
+    if (commentIndex === -1) return;
+    const comment = state.comments[commentIndex];
+    
+    let increment = 1;
+    if (comment.liked) {
+      increment = -1;
+      comment.liked = false;
+    } else {
+      comment.liked = true;
     }
-    return c;
-  });
-  localStorage.setItem('wyld_comments', JSON.stringify(state.comments));
-  renderComments();
+    
+    // Update count in Firestore doc
+    db.collection("comments").doc(commentId).update({
+      likes: firebase.firestore.FieldValue.increment(increment)
+    })
+    .then(() => {
+      // Toggle client state liked flag locally
+      state.comments[commentIndex].liked = !state.comments[commentIndex].liked;
+      state.comments[commentIndex].likes += increment;
+      renderComments();
+    })
+    .catch(err => {
+      console.error("Failed to update Firestore comment like:", err);
+    });
+  } else {
+    state.comments = state.comments.map(c => {
+      if (c.id === commentId) {
+        if (c.liked) {
+          c.likes--;
+          c.liked = false;
+        } else {
+          c.likes++;
+          c.liked = true;
+        }
+      }
+      return c;
+    });
+    localStorage.setItem('wyld_comments', JSON.stringify(state.comments));
+    renderComments();
+  }
 }
 
 function flagComment(commentId) {
@@ -374,6 +499,28 @@ function escapeHTML(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+function formatTimeAgo(date) {
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return interval + " years ago";
+  
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return interval + " months ago";
+  
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return interval + " days ago";
+  
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return interval + " hours ago";
+  
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return interval + " minutes ago";
+  
+  return "just now";
 }
 
 // General Custom Toast/Alert
@@ -428,3 +575,330 @@ function subscribeNewsletter() {
     showToast(`Please enter a valid email address.`);
   }
 }
+
+// User Session and Login Modal Controls
+function initUserSession() {
+  if (isFirebaseEnabled) {
+    // Firebase auth listener
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const username = user.displayName || user.email.split('@')[0];
+        state.currentUser = {
+          username: username,
+          email: user.email,
+          avatar: username.charAt(0).toUpperCase()
+        };
+      } else {
+        state.currentUser = null;
+      }
+      updateHeaderUserMenu();
+    });
+  } else {
+    const storedUser = localStorage.getItem('wyld_user');
+    if (storedUser) {
+      state.currentUser = JSON.parse(storedUser);
+    }
+    updateHeaderUserMenu();
+  }
+}
+
+function updateHeaderUserMenu() {
+  const menuContainer = document.getElementById('header-user-menu');
+  if (!menuContainer) return;
+  
+  if (state.currentUser) {
+    menuContainer.innerHTML = `
+      <button class="btn-login dropdown-toggle" onclick="toggleAccountDropdown(event)">
+        <span class="user-welcome-avatar" style="background: ${getAvatarColor(state.currentUser.username)}">
+          ${state.currentUser.avatar}
+        </span> Account ▾
+      </button>
+      <div class="dropdown-menu" id="account-dropdown-menu">
+        <a href="#" onclick="switchTab('membership'); closeAccountDropdown(event);">My Membership</a>
+        <div class="dropdown-divider"></div>
+        <a href="#" onclick="handleLogout(event)">Logout</a>
+      </div>
+    `;
+    // If logged in, hide signup form container on home page
+    const homeSignup = document.getElementById('home-signup-container');
+    if (homeSignup) {
+      homeSignup.style.display = 'none';
+    }
+  } else {
+    menuContainer.innerHTML = `
+      <button class="btn-login dropdown-toggle" onclick="toggleAccountDropdown(event)">Account ▾</button>
+      <div class="dropdown-menu" id="account-dropdown-menu">
+        <a href="#" onclick="openLoginModalTab('login', event)">Login</a>
+        <a href="#" onclick="openLoginModalTab('signup', event)">Sign Up</a>
+      </div>
+    `;
+    const homeSignup = document.getElementById('home-signup-container');
+    if (homeSignup) {
+      homeSignup.style.display = 'block';
+    }
+  }
+}
+
+function openLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) {
+    modal.classList.add('show');
+    switchModalTab('login');
+  }
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+function switchModalTab(tab) {
+  const tabLoginBtn = document.getElementById('modal-tab-login');
+  const tabSignupBtn = document.getElementById('modal-tab-signup');
+  const formLogin = document.getElementById('modal-login-form');
+  const formSignup = document.getElementById('modal-signup-form');
+  
+  if (tab === 'login') {
+    tabLoginBtn.classList.add('active');
+    tabSignupBtn.classList.remove('active');
+    formLogin.style.display = 'block';
+    formSignup.style.display = 'none';
+  } else {
+    tabSignupBtn.classList.add('active');
+    tabLoginBtn.classList.remove('active');
+    formLogin.style.display = 'none';
+    formSignup.style.display = 'block';
+  }
+}
+
+function handleModalLogin() {
+  const usernameInput = document.getElementById('login-username');
+  const passwordInput = document.getElementById('login-password');
+  const nameOrEmail = usernameInput.value.trim();
+  const pass = passwordInput.value.trim();
+
+  if (!nameOrEmail || !pass) {
+    showToast("Please enter email and password.");
+    return;
+  }
+
+  const email = nameOrEmail.includes('@') ? nameOrEmail : `${nameOrEmail.toLowerCase()}@garage.com`;
+
+  if (isFirebaseEnabled) {
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(userCredential => {
+        closeLoginModal();
+        showToast("Logged in successfully!");
+      })
+      .catch(error => {
+        console.error("Firebase Login Error:", error);
+        showToast(`Login failed: ${error.message}`);
+      });
+  } else {
+    const userObj = {
+      username: nameOrEmail.split('@')[0],
+      email: email,
+      avatar: nameOrEmail.charAt(0).toUpperCase()
+    };
+    state.currentUser = userObj;
+    localStorage.setItem('wyld_user', JSON.stringify(userObj));
+    updateHeaderUserMenu();
+    closeLoginModal();
+    showToast(`Welcome back, ${state.currentUser.username}!`);
+  }
+}
+
+function handleModalSignup() {
+  const usernameInput = document.getElementById('signup-username');
+  const emailInput = document.getElementById('signup-email');
+  const passwordInput = document.getElementById('signup-password');
+  
+  const name = usernameInput.value.trim();
+  const email = emailInput.value.trim();
+  const pass = passwordInput.value.trim();
+
+  if (!name || !email || !pass) {
+    showToast("All fields are required to sign up!");
+    return;
+  }
+
+  if (isFirebaseEnabled) {
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then(userCredential => {
+        const user = userCredential.user;
+        return user.updateProfile({ displayName: name });
+      })
+      .then(() => {
+        closeLoginModal();
+        showToast(`Account created! Welcome, ${name}.`);
+      })
+      .catch(error => {
+        console.error("Firebase Signup Error:", error);
+        showToast(`Signup failed: ${error.message}`);
+      });
+  } else {
+    const userObj = {
+      username: name,
+      email: email,
+      avatar: name.charAt(0).toUpperCase()
+    };
+    state.currentUser = userObj;
+    localStorage.setItem('wyld_user', JSON.stringify(userObj));
+    updateHeaderUserMenu();
+    closeLoginModal();
+    showToast(`Account created! Welcome, ${name}.`);
+  }
+}
+
+function handleHomeSignup() {
+  const usernameInput = document.getElementById('signup-home-username');
+  const emailInput = document.getElementById('signup-home-email');
+  const passwordInput = document.getElementById('signup-home-password');
+  
+  const name = usernameInput.value.trim();
+  const email = emailInput.value.trim();
+  const pass = passwordInput.value.trim();
+
+  if (!name || !email || !pass) {
+    showToast("Please fill out all fields to sign up!");
+    return;
+  }
+
+  if (isFirebaseEnabled) {
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then(userCredential => {
+        const user = userCredential.user;
+        return user.updateProfile({ displayName: name });
+      })
+      .then(() => {
+        const homeSignup = document.getElementById('home-signup-container');
+        if (homeSignup) {
+          homeSignup.innerHTML = `
+            <div style="text-align: center; padding: 2rem 0; width: 100%;">
+              <div class="success-icon" style="margin: 0 auto 1.5rem;">✓</div>
+              <h2 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 0.5rem;">Welcome to the Wyld Club, ${name}!</h2>
+              <p style="color: var(--text-secondary); font-size: 0.95rem;">You are now signed in. Use coupon code <strong>WYLDCLUB10</strong> for 10% off your purchase.</p>
+            </div>
+          `;
+        }
+        showToast("Account created successfully!");
+      })
+      .catch(error => {
+        console.error("Firebase Home Signup Error:", error);
+        showToast(`Signup failed: ${error.message}`);
+      });
+  } else {
+    const userObj = {
+      username: name,
+      email: email,
+      avatar: name.charAt(0).toUpperCase()
+    };
+    state.currentUser = userObj;
+    localStorage.setItem('wyld_user', JSON.stringify(userObj));
+    updateHeaderUserMenu();
+    
+    const homeSignup = document.getElementById('home-signup-container');
+    if (homeSignup) {
+      homeSignup.innerHTML = `
+        <div style="text-align: center; padding: 2rem 0; width: 100%;">
+          <div class="success-icon" style="margin: 0 auto 1.5rem;">✓</div>
+          <h2 style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 0.5rem;">Welcome to the Wyld Club, ${name}!</h2>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">You are now signed in. Use coupon code <strong>WYLDCLUB10</strong> for 10% off your purchase.</p>
+        </div>
+      `;
+    }
+    showToast("Account created successfully!");
+  }
+}
+
+function handleLogout(event) {
+  if (event) {
+    event.preventDefault();
+  }
+  if (isFirebaseEnabled) {
+    auth.signOut()
+      .then(() => {
+        showToast("Logged out successfully.");
+      })
+      .catch(error => {
+        console.error("Firebase Logout Error:", error);
+        showToast("Logout failed.");
+      });
+  } else {
+    state.currentUser = null;
+    localStorage.removeItem('wyld_user');
+    updateHeaderUserMenu();
+    showToast("Logged out successfully.");
+  }
+}
+
+// Dropdown Menu Helpers
+function toggleAccountDropdown(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const menu = document.getElementById('account-dropdown-menu');
+  if (menu) {
+    menu.classList.toggle('show');
+  }
+}
+
+function closeAccountDropdown(event) {
+  if (event) {
+    event.preventDefault();
+  }
+  const menu = document.getElementById('account-dropdown-menu');
+  if (menu) {
+    menu.classList.remove('show');
+  }
+}
+
+function openLoginModalTab(tab, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  closeAccountDropdown();
+  const modal = document.getElementById('login-modal');
+  if (modal) {
+    modal.classList.add('show');
+    switchModalTab(tab);
+  }
+}
+
+// Global click handler to close dropdown when clicking outside
+window.addEventListener('click', (e) => {
+  const menu = document.getElementById('account-dropdown-menu');
+  if (menu && menu.classList.contains('show')) {
+    if (!e.target.matches('.dropdown-toggle') && !e.target.closest('.dropdown')) {
+      menu.classList.remove('show');
+    }
+  }
+});
+
+// Discuss Today's Deal Preview on Home Page
+function renderDiscussPreview() {
+  const container = document.getElementById('discuss-preview-list');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  // Take first 2 discussions/comments
+  const previews = state.comments.slice(0, 2);
+  previews.forEach(comment => {
+    const card = document.createElement('div');
+    card.className = 'discuss-preview-card';
+    card.onclick = () => switchTab('forum');
+    card.innerHTML = `
+      <div class="discuss-preview-meta">
+        <span class="discuss-preview-author">${comment.author}</span>
+        <span>${comment.time}</span>
+      </div>
+      <div class="discuss-preview-text">"${escapeHTML(comment.text)}"</div>
+    `;
+    container.appendChild(card);
+  });
+}
+

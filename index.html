@@ -32,11 +32,9 @@
       </nav>
 
       <div class="header-actions">
-        <div class="live-stats">
-          <span class="live-indicator"></span>
-          <span id="users-count">1,482</span> online
+        <div class="dropdown" id="header-user-menu">
+          <!-- Populated dynamically via app.js -->
         </div>
-        <button class="btn-membership" onclick="toggleCoupons()">Coupons</button>
       </div>
     </div>
   </header>
@@ -131,6 +129,88 @@
             </div>
           </div>
         </div>
+
+        <!-- Discuss Today's Deal Preview -->
+        <div class="discuss-today-section">
+          <div class="discuss-header">
+            <h2>💬 Discuss <span>Today's Deal</span></h2>
+            <button class="btn-new-thread" onclick="switchTab('forum')">Go to Forum</button>
+          </div>
+          <div class="discuss-preview-container" id="discuss-preview-list">
+            <!-- Dynamically loaded preview comments via JS -->
+          </div>
+        </div>
+
+        <!-- Home page Sign Up Option -->
+        <div class="home-signup-section" id="home-signup-container">
+          <div class="signup-container">
+            <div class="signup-info">
+              <h2>Join the <span>Wyld Club</span> Today</h2>
+              <p>Create a free account to unlock faster checkouts, save coupons, track shipping, and receive notification alerts before the deal of the day runs out.</p>
+              <div class="signup-benefits">
+                <div class="signup-benefit-item">10% Off your first non-regret purchase</div>
+                <div class="signup-benefit-item">Exclusive badges on the Community Forum</div>
+                <div class="signup-benefit-item">Early notification alert list</div>
+              </div>
+            </div>
+            <div class="signup-form-card">
+              <h3 style="font-family: var(--font-display); font-size: 1.25rem;">Create Account</h3>
+              <div class="form-group">
+                <input type="text" id="signup-home-username" class="form-input" placeholder="Desired Username" required>
+              </div>
+              <div class="form-group">
+                <input type="email" id="signup-home-email" class="form-input" placeholder="Email Address" required>
+              </div>
+              <div class="form-group">
+                <input type="password" id="signup-home-password" class="form-input" placeholder="Create Password" required>
+              </div>
+              <button class="btn-buy" style="padding: 0.75rem; font-size: 1rem; text-transform: none; margin-top: 0.5rem;" onclick="handleHomeSignup()">Sign Up Free</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Our Community Section with Blog Grid & Slider -->
+        <div class="our-community-section">
+          <div class="community-section-header">
+            <h2>Our Community</h2>
+            <p>Explore hot topics, build logs, and tragic box outcomes shared by our community members.</p>
+          </div>
+
+
+          <!-- Forum Blog Grid -->
+          <div class="topics-blog-grid">
+            <div class="blog-topic-card">
+              <span class="blog-tag">Mechanic Tips</span>
+              <h3 class="blog-title">How to Install a GT35 Twin-Scroll Without Ruining Your Engine</h3>
+              <p class="blog-desc">A detailed step-by-step guide outlining manifold choice, oil line placement, and basic ECU mapping for street tuning.</p>
+              <div class="blog-footer">
+                <span>By BoostedGuru</span>
+                <span class="blog-replies">💬 14 replies</span>
+              </div>
+            </div>
+            
+            <div class="blog-topic-card">
+              <span class="blog-tag">Build Logs</span>
+              <h3 class="blog-title">My 1000HP Honda Civic Build Log</h3>
+              <p class="blog-desc">Sharing the dyno sheets and parts list of my drag civic build. Using custom parts sourced entirely from Wyld Deal daily listings.</p>
+              <div class="blog-footer">
+                <span>By CivicSlayer</span>
+                <span class="blog-replies">💬 89 replies</span>
+              </div>
+            </div>
+            
+            <div class="blog-topic-card">
+              <span class="blog-tag">Box Reveals</span>
+              <h3 class="blog-title">IRK Hall of Fame: What was in your box?</h3>
+              <p class="blog-desc">Post photos of your Instant Regret Kit deliveries! Let's catalog the weirdest items shipped out by the warehouse crew.</p>
+              <div class="blog-footer">
+                <span>By WrenchMonkey</span>
+                <span class="blog-replies">💬 142 replies</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -372,6 +452,48 @@
     </div>
   </div>
 
+  <!-- Modal: Login/Signup Overlay -->
+  <div class="modal-overlay" id="login-modal">
+    <div class="checkout-modal" style="max-width: 400px;">
+      <button class="modal-close" onclick="closeLoginModal()">×</button>
+      
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" id="modal-tab-login" onclick="switchModalTab('login')">Login</button>
+        <button class="modal-tab-btn" id="modal-tab-signup" onclick="switchModalTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="modal-login-form">
+        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+          <label for="login-username">Username or Email</label>
+          <input type="text" id="login-username" class="form-input" placeholder="Gearhead_99" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button class="btn-buy" style="width: 100%; text-transform: none; padding: 0.8rem;" onclick="handleModalLogin()">Login</button>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div id="modal-signup-form" style="display: none;">
+        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" class="form-input" placeholder="BoostLover" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="form-input" placeholder="mechanic@garage.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button class="btn-buy" style="width: 100%; text-transform: none; padding: 0.8rem;" onclick="handleModalSignup()">Create Account</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer>
     <div class="footer-container">
@@ -420,6 +542,11 @@
       </div>
     </div>
   </footer>
+
+  <!-- Firebase SDKs (Compat/v10 Version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <script src="app.js"></script>
 </body>
