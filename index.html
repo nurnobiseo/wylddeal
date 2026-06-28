@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WYLD DEAL | Deal of the Day - Premium Auto Parts & Regret</title>
+  <meta name="description" content="Wyld Performance's ultimate Deal of the Day website. Grab premium auto parts at ridiculous prices, mystery boxes (Instant Regret Kit), coupons, and chat with the community.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Dynamic Grids & Blurs -->
+  <div class="bg-grid"></div>
+  <div class="bg-blur bg-blur-1"></div>
+  <div class="bg-blur bg-blur-2"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <a href="#" class="logo-area" onclick="switchTab('deal')">
+        <div class="logo-icon">W</div>
+        <div class="logo-text">WYLD <span>DEAL</span></div>
+      </a>
+      
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#" id="nav-deal" class="active" onclick="switchTab('deal')">Deal of the Day</a></li>
+          <li><a href="#" id="nav-irk" onclick="switchTab('irk')">Mystery Box (I.R.K.)</a></li>
+          <li><a href="#" id="nav-forum" onclick="switchTab('forum')">Community Forum</a></li>
+          <li><a href="#" id="nav-membership" onclick="switchTab('membership')">Wyld Club</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <div class="live-stats">
+          <span class="live-indicator"></span>
+          <span id="users-count">1,482</span> online
+        </div>
+        <button class="btn-membership" onclick="toggleCoupons()">Coupons</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Area -->
+  <main>
+    
+    <!-- TAB 1: DEAL OF THE DAY -->
+    <div id="tab-deal" class="tab-content active-tab">
+      <div class="deal-grid">
+        <!-- Main Product Showcase -->
+        <div class="deal-card">
+          <div class="deal-header">
+            <div>
+              <span class="deal-tag">Deal of the Day</span>
+              <h1 class="deal-title">Wyld Spec GT35 Twin-Scroll Turbocharger</h1>
+            </div>
+            <div class="timer-box" style="margin-top: 0;">
+              <div class="timer-label">Deal Ends In</div>
+              <div id="deal-timer" class="timer-display">00:00:00</div>
+            </div>
+          </div>
+
+          <div class="deal-visuals">
+            <img src="images/wyld_turbo_deal.jpg" alt="Wyld Spec GT35 Twin-Scroll Turbocharger" class="deal-img">
+          </div>
+
+          <div class="deal-description">
+            <h3>Boost Your Engine. Break Your Knuckles.</h3>
+            <p>
+              Looking to add some serious horsepower to your project car without emptying your savings? Today's deal is the mythical GT35 Twin-Scroll Turbocharger, custom tuned under Wyld Performance specifications. It delivers unmatched throttle response and supports up to 650 HP for your track runs or grocery trips. Note: Fitting this into a 3-cylinder hatchback is highly encouraged but not legally recommended.
+            </p>
+            
+            <div class="spec-list">
+              <div class="spec-item">
+                <span class="spec-label">Flange Type</span>
+                <span class="spec-value">T3 / T4 Multi</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Bearing Type</span>
+                <span class="spec-value">Dual Wet Ball Bearing</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Compressor Trim</span>
+                <span class="spec-value">57 Trim A/R 0.70</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">Cooling</span>
+                <span class="spec-value">Oil & Water Cooled</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checkout and side promotional panel -->
+        <div class="pricing-panel">
+          <div class="price-container">
+            <div class="price-main">$599</div>
+            <div class="price-sub">
+              <span class="original-price">$1,299</span>
+              <span class="save-badge">Save 54%</span>
+            </div>
+          </div>
+
+          <div class="stock-box">
+            <div class="stock-label">
+              <span class="stock-text">Hurry! Limited stock available</span>
+              <span class="stock-pct" id="stock-pct-value">78% Sold</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="stock-bar-fill" style="width: 78%;"></div>
+            </div>
+          </div>
+
+          <button class="btn-buy" onclick="openCheckout('Wyld Spec GT35 Turbocharger', 599, 'images/wyld_turbo_deal.jpg')">Get Today's Deal</button>
+
+          <div class="security-note">
+            <span>🛡️</span> 30-Day Wyld Performance Warranty & Hassle-Free Returns
+          </div>
+
+          <!-- IRK teaser banner -->
+          <div class="irk-banner" onclick="switchTab('irk')">
+            <div class="irk-banner-header">
+              <span class="irk-title">Mystery Box Active!</span>
+              <span class="irk-badge">$30</span>
+            </div>
+            <div class="irk-banner-desc">
+              Do you like risk? Do you like disappointment? Grab the legendary Auto Parts <strong>Instant Regret Kit</strong>. Only a few left for today.
+            </div>
+            <div class="irk-banner-action">
+              Check out the Regret <span>→</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: MYSTERY BOX (IRK SHOWCASE) -->
+    <div id="tab-irk" class="tab-content">
+      <div class="irk-page">
+        <div class="irk-image-container">
+          <img src="images/wyld_irk_box.jpg" alt="Instant Regret Kit Mystery Box">
+          <div class="irk-image-overlay">IRK AUTO EDITION</div>
+        </div>
+        
+        <div class="irk-content">
+          <h1 class="irk-main-title">Instant Regret Kit</h1>
+          
+          <div class="irk-qa-section">
+            <div class="irk-qa-item">
+              <div class="irk-q">What does I.R.K. stand for?</div>
+              <div class="irk-a">It stands for Instant Regret Kit.</div>
+            </div>
+            <div class="irk-qa-item">
+              <div class="irk-q">And what will be in it?</div>
+              <div class="irk-a">We can’t tell you that.</div>
+            </div>
+            <div class="irk-qa-item">
+              <div class="irk-q">But it’ll be worth at least $30, right?</div>
+              <div class="irk-a">We can’t tell you that either. It might be. It might not be. It might technically be worth way more, and yet also way less. As in: the items in it might have a monetary value of way more than $30, and yet, you might not want a single thing included.</div>
+            </div>
+            <div class="irk-qa-item">
+              <div class="irk-q">Why does this sound like such a bad purchase?</div>
+              <div class="irk-a">Because it is. We make no claims otherwise. It’s called an Instant Regret kit, for crying out loud.</div>
+            </div>
+            <div class="irk-qa-item">
+              <div class="irk-q">So, what’s the weird gimmick you all are trying with this one?</div>
+              <div class="irk-a">We don’t follow.</div>
+            </div>
+            <div class="irk-qa-item">
+              <div class="irk-q">How much does it REALLY cost?</div>
+              <div class="irk-a"><strong>$30.</strong></div>
+            </div>
+          </div>
+
+          <div class="irk-price-bar">
+            <div>
+              <div class="irk-price">$30 <span>$99 VALUE?</span></div>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Max 1 per customer. No returns, no crying.</p>
+            </div>
+            <button class="btn-buy" style="padding: 0.8rem 1.5rem;" onclick="openCheckout('Instant Regret Kit (IRK) - Auto Edition', 30, 'images/wyld_irk_box.jpg')">Add Regret to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: COMMUNITY FORUM -->
+    <div id="tab-forum" class="tab-content">
+      <div class="forum-layout">
+        <!-- Forum Discussion Feed -->
+        <div>
+          <div class="forum-header-actions">
+            <h2>Today's Deal Discussion</h2>
+            <button class="btn-new-thread" onclick="togglePostForm()">+ Add Comment</button>
+          </div>
+
+          <!-- Add Comment Form Card -->
+          <div class="post-form-card" id="post-form">
+            <div class="form-group">
+              <label for="comment-username">Username</label>
+              <input type="text" id="comment-username" class="form-input" placeholder="Gearhead_99">
+            </div>
+            <div class="form-group">
+              <label for="comment-text">Your Comment</label>
+              <textarea id="comment-text" rows="4" class="form-input" placeholder="Type your thoughts, funny jokes, or mechanic warnings..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn-cancel" onclick="togglePostForm()">Cancel</button>
+              <button class="btn-submit" onclick="submitComment()">Post Comment</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Comments Feed -->
+          <div class="comments-feed" id="comments-feed-container">
+            <!-- Loaded via app.js -->
+          </div>
+        </div>
+
+        <!-- Sidebar stats and details -->
+        <div class="forum-sidebar">
+          <div class="sidebar-card">
+            <h3>Forum Rules</h3>
+            <p style="margin-bottom: 0.5rem; line-height: 1.4;">
+              1. Keep it funny, auto-centric, and constructive.
+            </p>
+            <p style="margin-bottom: 0.5rem; line-height: 1.4;">
+              2. Do not brag too much if your Instant Regret Kit actually contained a carbon fiber wing (it won't).
+            </p>
+            <p style="line-height: 1.4;">
+              3. No actual physical violence towards our server admins when parts don't fit your custom lawnmower.
+            </p>
+          </div>
+          <div class="sidebar-card">
+            <h3>Deal Statistics</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; margin-top: 0.5rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted)">Orders Placed:</span>
+                <strong id="stat-orders">412</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted)">Views Today:</span>
+                <strong>12,482</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted)">Refund Requests:</span>
+                <strong>0 (No refunds anyway)</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: MEMBERSHIP (WYLD CLUB) -->
+    <div id="tab-membership" class="tab-content">
+      <div class="membership-page">
+        <div class="membership-hero">
+          <h2>Join the WYLD CLUB</h2>
+          <p>Get access to premium privileges, early access to deals, and exclusive entry to the highest-tier Instant Regret Kits.</p>
+        </div>
+
+        <div class="membership-grid">
+          <!-- Tier 1 -->
+          <div class="membership-tier">
+            <div class="tier-name">Wrench Monkey</div>
+            <div class="tier-price">$0<span>/forever</span></div>
+            <ul class="tier-features">
+              <li>Access to standard daily deal</li>
+              <li>Post on the community forums</li>
+              <li>Standard slow shipping</li>
+            </ul>
+            <button class="btn-tier" onclick="joinMembership('Wrench Monkey (Free)')">Active Plan</button>
+          </div>
+
+          <!-- Tier 2 -->
+          <div class="membership-tier featured">
+            <div class="tier-name">Turbo Charger</div>
+            <div class="tier-price">$5<span>/month</span></div>
+            <ul class="tier-features">
+              <li>Free standard shipping on all deals</li>
+              <li>1 hour early access to Daily Deals</li>
+              <li>Double chances for high-value IRK items</li>
+              <li>Exclusive "Turbo" forum badge</li>
+            </ul>
+            <button class="btn-tier" onclick="joinMembership('Turbo Charger ($5/mo)')">Subscribe Now</button>
+          </div>
+
+          <!-- Tier 3 -->
+          <div class="membership-tier">
+            <div class="tier-name">Track Champion</div>
+            <div class="tier-price">$19<span>/month</span></div>
+            <ul class="tier-features">
+              <li>Free 2-day express shipping</li>
+              <li>Guaranteed access to buy 1 IRK per month</li>
+              <li>Secret forums for build support</li>
+              <li>Gold "Champion" avatar glow</li>
+            </ul>
+            <button class="btn-tier" onclick="joinMembership('Track Champion ($19/mo)')">Go Professional</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Side Drawer: Coupons -->
+  <div class="coupons-drawer" id="coupons-drawer">
+    <div class="coupons-header">
+      <h3>Active Coupons</h3>
+      <button class="close-drawer-btn" onclick="toggleCoupons()">×</button>
+    </div>
+    <p style="font-size: 0.8rem; color: var(--text-secondary);">Click to copy coupon code to clipboard.</p>
+    
+    <div class="coupon-card" onclick="copyCoupon('WYLD10')">
+      <div class="coupon-code">WYLD10</div>
+      <p style="font-size: 0.85rem; font-weight: bold;">10% Off Sitewide</p>
+      <p style="font-size: 0.75rem; color: var(--text-muted);">Excludes Instant Regret Kits.</p>
+    </div>
+
+    <div class="coupon-card" onclick="copyCoupon('BOOST50')">
+      <div class="coupon-code">BOOST50</div>
+      <p style="font-size: 0.85rem; font-weight: bold;">$50 Off Turbos</p>
+      <p style="font-size: 0.75rem; color: var(--text-muted);">Minimum purchase $500.</p>
+    </div>
+
+    <div class="coupon-card" onclick="copyCoupon('REGRETFREE')">
+      <div class="coupon-code">REGRETFREE</div>
+      <p style="font-size: 0.85rem; font-weight: bold;">Free Regret Shipping</p>
+      <p style="font-size: 0.75rem; color: var(--text-muted);">Valid for Wyld Club members.</p>
+    </div>
+  </div>
+
+  <!-- Modal: Checkout Overlay -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="checkout-modal">
+      <button class="modal-close" onclick="closeCheckout()">×</button>
+      
+      <!-- Content 1: Confirm Order -->
+      <div id="checkout-form-content">
+        <h3 class="modal-title">Secure Checkout</h3>
+        
+        <div class="checkout-item-details">
+          <img src="" alt="" id="checkout-img" class="checkout-item-img">
+          <div class="checkout-item-text">
+            <h4 id="checkout-title">Product Name</h4>
+            <p id="checkout-price">$0.00</p>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label>Quantity</label>
+          <select id="checkout-qty" class="form-input" style="background: #000;">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+
+        <button class="btn-buy" style="width: 100%; margin-top: 1rem;" onclick="processPayment()">Place Secure Order</button>
+        <p style="font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: 0.5rem;">This is a premium simulated order checkout.</p>
+      </div>
+
+      <!-- Content 2: Order Completed -->
+      <div id="checkout-success-content" class="payment-success">
+        <div class="success-icon">✓</div>
+        <h3>Order Placed Successfully!</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+          Your order has been logged under transaction <strong id="trans-id">#WYLD-82739</strong>. 
+          Get ready for awesome parts (or extreme regret) to arrive at your door!
+        </p>
+        <button class="btn-membership" style="margin-top: 1rem; width: 100%;" onclick="closeCheckout()">Return to Deals</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="logo-area" style="margin-bottom: 0.5rem;">
+          <div class="logo-icon">W</div>
+          <div class="logo-text">WYLD <span>DEAL</span></div>
+        </div>
+        <p>A subsidiary of Wyld Performance. The internet's premium dumping ground for high-speed auto parts, mystery crates, and minor regret.</p>
+        <p style="color: var(--text-muted); font-size: 0.75rem;">© 2026 Wyld Performance Inc. All Rights Regretted.</p>
+      </div>
+
+      <div class="footer-links">
+        <h4>The Deals</h4>
+        <a href="#" onclick="switchTab('deal')">Deal of the Day</a>
+        <a href="#" onclick="switchTab('irk')">Instant Regret Kit</a>
+        <a href="#" onclick="toggleCoupons()">Active Coupons</a>
+        <a href="#" onclick="switchTab('membership')">Wyld Club Premium</a>
+      </div>
+
+      <div class="footer-links">
+        <h4>Need Support?</h4>
+        <a href="#">Track Order</a>
+        <a href="#">Fitment Calculator</a>
+        <a href="#">Returns policy (Strict)</a>
+        <a href="#">Contact Wyld Pitcrew</a>
+      </div>
+
+      <div class="footer-newsletter">
+        <h4>Stay in the Boost Loop</h4>
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">Get notified exactly 1 minute before the next daily deal drops.</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="mechanic@garage.com" class="newsletter-input" id="newsletter-email">
+          <button class="newsletter-btn" onclick="subscribeNewsletter()">Join</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div>
+        <strong>Disclaimer:</strong> Wyld Deal is not responsible for blown gaskets, engine fires, empty wallets, or the emotional toll of opening an Instant Regret Kit. Installation should be performed by semi-professionals or very brave amateurs.
+      </div>
+      <div class="footer-bottom-links" style="margin-top: 1rem;">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Disappointment</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
